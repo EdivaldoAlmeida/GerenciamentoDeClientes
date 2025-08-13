@@ -122,6 +122,30 @@ def deletar_cliente(telefone):
     finally:
         cursor.close()
         conn.close()
+        
+    # Rota para deletar um empréstimo por ID
+@app.route('/emprestimos/<int:id>', methods=['DELETE'])
+def deletar_emprestimo(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("DELETE FROM emprestimos WHERE id = %s", (id,))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return jsonify({"message": "Empréstimo não encontrado."}), 404
+
+        return jsonify({"message": "Empréstimo excluído com sucesso!"}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "Ocorreu um erro ao excluir o empréstimo.", "error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+    
     
 # Rota para buscar os dados de um único cliente por telefone
 @app.route('/clientes/<string:telefone>', methods=['GET'])
@@ -223,21 +247,22 @@ def cadastrar_emprestimo():
 def listar_emprestimos_cliente(telefone):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     try:
         cursor.execute(
-            "SELECT valor_emprestado, juros_mensal, num_meses, detalhes FROM emprestimos WHERE cliente_telefone = %s",
+            "SELECT id, valor_emprestado, juros_mensal, num_meses, detalhes FROM emprestimos WHERE cliente_telefone = %s",
             (telefone,)
         )
         emprestimos = cursor.fetchall()
-        
+
         emprestimos_formatados = []
         for emprestimo in emprestimos:
             emprestimos_formatados.append({
-                "valor_emprestado": str(emprestimo[0]),
-                "juros_mensal": str(emprestimo[1]),
-                "num_meses": emprestimo[2],
-                "detalhes": emprestimo[3]
+                "id": emprestimo[0],
+                "valor_emprestado": str(emprestimo[1]),
+                "juros_mensal": str(emprestimo[2]),
+                "num_meses": emprestimo[3],
+                "detalhes": emprestimo[4]
             })
         return jsonify(emprestimos_formatados), 200
     except Exception as e:

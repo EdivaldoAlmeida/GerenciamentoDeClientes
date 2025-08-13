@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,11 +13,21 @@
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
         }
-        h1 { font-size: 1.875rem; }
-        h2 { font-size: 1.5rem; }
-        h3 { font-size: 1.25rem; }
+
+        h1 {
+            font-size: 1.875rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100">
 
     <header class="bg-white shadow-md">
@@ -26,7 +37,8 @@
             </h1>
             <nav>
                 <a href="/" class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md">Cadastro</a>
-                <a href="/listagem" class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md">Listagem</a>
+                <a href="/listagem"
+                    class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md">Listagem</a>
             </nav>
         </div>
     </header>
@@ -35,20 +47,19 @@
         <section class="mt-8">
             <div class="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
                 <h2 class="text-2xl font-semibold text-center mb-6 text-gray-700">
-                    Empréstimos do Cliente: <span id="cliente-nome" class="font-bold"></span>
+                    EMPRÉSTIMOS DO CLIENTE
                 </h2>
-                
+
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                            <th class="py-3 px-6 text-left">Valor Emprestado</th>
-                            <th class="py-3 px-6 text-left">Juros ao Mês (%)</th>
-                            <th class="py-3 px-6 text-left">Nº de Meses</th>
-                            <th class="py-3 px-6 text-left">Detalhes</th>
+                            <th class="py-3 px-6 text-left">Valor Empréstimo</th>
+                            <th class="py-3 px-6 text-left">Juros Mensal (%)</th>
+                            <th class="py-3 px-6 text-left">Nº Meses</th>
+                            <th class="py-3 px-6 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-emprestimos" class="text-gray-600 text-sm font-light">
-                        <!-- As linhas de empréstimos serão inseridas aqui via JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -57,36 +68,21 @@
 
     <script>
         const tabelaEmprestimos = document.getElementById('tabela-emprestimos');
-        const clienteNomeSpan = document.getElementById('cliente-nome');
-        const API_URL_CLIENTE = 'http://127.0.0.1:5000/clientes';
-        const API_URL_EMPRESTIMO = 'http://127.0.0.1:5000/emprestimos';
+        const API_URL = 'http://127.0.0.1:5000/emprestimos';
 
-        // Função para extrair o telefone da URL
-        function getTelefoneFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('telefone');
-        }
+        // Pega o telefone do cliente da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const telefoneCliente = urlParams.get('telefone');
 
         // Função para carregar e exibir os empréstimos na tabela
-        async function carregarEmprestimos() {
-            const telefoneCliente = getTelefoneFromUrl();
-            if (!telefoneCliente) {
-                alert('Telefone do cliente não encontrado. Redirecionando...');
-                window.location.href = '/listagem';
-                return;
-            }
-
+        async function carregarEmprestimos(telefone) {
+            tabelaEmprestimos.innerHTML = '';
             try {
-                // Primeiro, busca o nome do cliente para o cabeçalho
-                const responseCliente = await fetch(`${API_URL_CLIENTE}/${telefoneCliente}`);
-                const cliente = await responseCliente.json();
-                clienteNomeSpan.textContent = cliente.nome;
-
-                // Depois, busca a lista de empréstimos
-                const responseEmprestimos = await fetch(`${API_URL_EMPRESTIMO}/${telefoneCliente}`);
-                const emprestimos = await responseEmprestimos.json();
-                
-                tabelaEmprestimos.innerHTML = ''; // Limpa a tabela antes de preencher
+                const response = await fetch(`${API_URL}/${telefone}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar os empréstimos.');
+                }
+                const emprestimos = await response.json();
 
                 if (emprestimos.length === 0) {
                     const row = document.createElement('tr');
@@ -115,41 +111,65 @@
                     mesesCell.classList.add('py-3', 'px-6', 'text-left');
                     mesesCell.textContent = emprestimo.num_meses;
 
-                    const detalhesCell = document.createElement('td');
-                    detalhesCell.classList.add('py-3', 'px-6', 'text-left');
-                    detalhesCell.textContent = emprestimo.detalhes || '-';
+                    // Célula para o botão de exclusão
+                    const acoesCell = document.createElement('td');
+                    acoesCell.classList.add('py-3', 'px-6', 'text-center');
+
+                    const btnExcluir = document.createElement('button');
+                    btnExcluir.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight');
+                    btnExcluir.textContent = 'Excluir';
+                    btnExcluir.setAttribute('data-id', emprestimo.id);
+                    acoesCell.appendChild(btnExcluir);
 
                     row.appendChild(valorCell);
                     row.appendChild(jurosCell);
                     row.appendChild(mesesCell);
-                    row.appendChild(detalhesCell);
-
+                    row.appendChild(acoesCell);
                     tabelaEmprestimos.appendChild(row);
                 });
             } catch (error) {
                 console.error('Erro:', error);
-                alert("Erro ao conectar ao servidor. Verifique se o backend está rodando.");
+                alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', carregarEmprestimos);
+        // A função de exclusão
+        async function excluirEmprestimo(id) {
+            if (!confirm('Tem certeza que deseja excluir este empréstimo?')) {
+                return;
+            }
+
+            try {
+                // Converte a string ID para um número inteiro antes de enviar
+                const response = await fetch(`${API_URL}/${parseInt(id)}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Recarrega a lista para mostrar a alteração
+                    carregarEmprestimos(telefoneCliente);
+                } else {
+                    const result = await response.json();
+                    alert('Erro ao excluir: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        // Adicionar um ouvinte de eventos para os cliques na tabela
+        tabelaEmprestimos.addEventListener('click', function (event) {
+            if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Excluir') {
+                const emprestimoId = event.target.getAttribute('data-id');
+                excluirEmprestimo(emprestimoId);
+            }
+        });
+
+        // Carregar os empréstimos quando a página for carregada
+        document.addEventListener('DOMContentLoaded', () => carregarEmprestimos(telefoneCliente));
     </script>
+
 </body>
+
 </html>
-```
-
-**Salve o arquivo `listagem-emprestimos.html` com esse código.**
-
----
-
-### **Próximos Passos (Ação Imediata)**
-
-1.  **Reinicie o Servidor Flask:** No terminal do VS Code, pressione `Ctrl + C` para parar o servidor e execute `python app.py` novamente.
-2.  **Teste o Fluxo:**
-    * Acesse `http://127.0.0.1:5000/`.
-    * Vá para a `Listagem`.
-    * Clique no botão "Financiamento" de um cliente.
-    * Faça uma simulação e clique em "CALCULAR E SALVAR".
-    * A página deve redirecionar corretamente para a `listagem-emprestimos.html`, e a tabela deve exibir o empréstimo que você acabou de cadastrar.
-
-Quando você tiver testado e confirmado que o fluxo completo de financiamento e listagem de empréstimos está funcionando, me diga `OK, TUDO FUNCIONANDO`.
