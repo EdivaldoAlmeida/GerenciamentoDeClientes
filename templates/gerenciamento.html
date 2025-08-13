@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciamento de Clientes</title>
+    <!-- Incluindo a biblioteca do Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluindo a fonte Inter do Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        /* Definindo a fonte Inter para o corpo do site */
+        font-family: "Inter", sans-serif;
+        /* Reduzindo o tamanho da fonte padrão */
+        font-size: 1rem; /* Equivalente a 16px, ajuste conforme desejar */
+      }
+      /* Ajustando tamanhos de títulos para manter a consistência */
+      h1 {
+        font-size: 1.875rem; /* text-3xl */
+      }
+      h2 {
+        font-size: 1.5rem; /* text-2xl */
+      }
+      h3 {
+        font-size: 1.25rem; /* text-xl */
+      }
+    </style></head
+  >F
+  <body class="bg-gray-100">
+    <header class="bg-white shadow-md">
+      <div class="container mx-auto p-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">
+          GERENCIAMENTO DE CLIENTES
+        </h1>
+        <nav>
+          <a
+            href="/"
+            class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"
+            >Cadastro</a
+          >
+          <a
+            href="/listagem"
+            class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"
+            >Listagem</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+      <section class="mt-8">
+        <div class="bg-white p-8 rounded-lg shadow-md max-w-xl mx-auto">
+          <h2 class="text-2xl font-semibold text-center mb-6 text-gray-700">
+            CADASTRO DE CLIENTES
+          </h2>
+
+          <form id="form-cadastro">
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="nome"
+              >
+                Nome Completo
+              </label>
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="nome"
+                type="text"
+                placeholder="Digite o nome completo"
+                required
+              />
+            </div>
+
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="email"
+              >
+                E-mail
+              </label>
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="email"
+                type="email"
+                placeholder="Digite o e-mail"
+              />
+            </div>
+
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="telefone"
+              >
+                Telefone
+              </label>
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="telefone"
+                type="tel"
+                placeholder="Digite o telefone"
+              />
+            </div>
+
+            <div class="flex items-center justify-between">
+              <button
+                id="btn-cadastrar"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit"
+              >
+                Cadastrar Cliente
+              </button>
+              <a
+                href="financiamento"
+                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >
+                Financiamento
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // URL base do seu backend
+      const API_URL = "http://127.0.0.1:5000/clientes";
+
+      // Adicionando um ouvinte de evento para o formulário
+      document
+        .getElementById("form-cadastro")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const nome = document.getElementById("nome").value;
+          const email = document.getElementById("email").value;
+          const telefone = document.getElementById("telefone").value;
+
+          const novoCliente = {
+            nome: nome,
+            email: email,
+            telefone: telefone,
+          };
+
+          try {
+            const response = await fetch(API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(novoCliente),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              // Ao invés do alerta de sucesso, vamos redirecionar imediatamente.
+              window.location.href = "/listagem";
+            } else {
+              // Mensagem de erro permanece para feedback negativo.
+              alert("Erro ao cadastrar: " + result.message);
+            }
+          } catch (error) {
+            console.error("Erro:", error);
+            alert(
+              "Erro de conexão com o servidor. Verifique se o backend está rodando."
+            );
+          }
+        });
+    </script>
+  </body>
+</html>
