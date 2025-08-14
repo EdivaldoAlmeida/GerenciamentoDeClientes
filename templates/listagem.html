@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+     
+  <meta charset="UTF-8" />
+     
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Listagem de Clientes</title>
+     
+  <script src="https://cdn.tailwindcss.com"></script>
+     
+  <link       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"       rel="stylesheet"
+        />
+      <style>
+    body {
+      font-family: "Inter", sans-serif;
+      font-size: 1rem;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+    }
+  </style>
+   
+</head>
+ 
+
+<body class="bg-gray-100">
+      <header class="bg-white shadow-md">
+          <div class="container mx-auto p-4 flex justify-between items-center">
+              <h1 class="text-3xl font-bold text-gray-800">
+                  GERENCIAMENTO DE CLIENTES
+                </h1>
+              <nav>
+                  <a             href="/"            
+          class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"            >Cadastro</a        
+           >
+                  <a             href="/listagem"            
+          class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"            >Listagem</a        
+           >
+                </nav>
+            </div>
+        </header>
+
+      <main class="container mx-auto p-4">
+          <section class="mt-8">
+              <div class="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                  <h2 class="text-2xl font-semibold text-center mb-6 text-gray-700">
+                      LISTAGEM DE CLIENTES
+                    </h2>
+
+                      <form id="form-busca" class="mb-6 flex items-center space-x-2">
+          <input type="text" id="input-busca" placeholder="Buscar por nome ou telefone..."
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+          <button type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Buscar
+          </button>
+          <button type="button" id="btn-limpar-busca"
+            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Limpar
+          </button>
+        </form>
+
+                  <table class="min-w-full table-auto">
+                      <thead>
+                          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                              <th class="py-3 px-6 text-left">Nome</th>
+                              <th class="py-3 px-6 text-left">E-mail</th>
+                              <th class="py-3 px-6 text-left">Telefone</th>
+                              <th class="py-3 px-6 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                      <tbody               id="tabela-clientes"               class="text-gray-600 text-sm font-light"  
+                     >
+                                      </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+     
+  <script>
+    const tabelaClientes = document.getElementById("tabela-clientes");
+    const formBusca = document.getElementById("form-busca");
+    const inputBusca = document.getElementById("input-busca");
+    const btnLimparBusca = document.getElementById("btn-limpar-busca");
+    const API_URL = "http://127.0.0.1:5000/clientes";
+    const API_URL_EMPRESTIMO = "http://127.0.0.1:5000/emprestimos";
+
+    // Função para carregar e exibir os clientes na tabela
+    async function carregarClientes(query = "") {
+      tabelaClientes.innerHTML = "";
+
+      try {
+        const response = await fetch(`${API_URL}?query=${query}`);
+        if (!response.ok) {
+          throw new Error(
+            "Erro ao carregar os clientes: " + response.statusText
+          );
+        }
+        const clientes = await response.json();
+
+        if (clientes.length === 0) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 4;
+          cell.classList.add(
+            "py-3",
+            "px-6",
+            "text-center",
+            "text-gray-500",
+            "italic"
+          );
+          cell.textContent = "Nenhum cliente encontrado.";
+          row.appendChild(cell);
+          tabelaClientes.appendChild(row);
+          return;
+        }
+
+        clientes.forEach((cliente) => {
+          const row = document.createElement("tr");
+          row.classList.add(
+            "border-b",
+            "border-gray-200",
+            "hover:bg-gray-100"
+          );
+
+          const nomeCell = document.createElement("td");
+          nomeCell.classList.add(
+            "py-3",
+            "px-6",
+            "text-left",
+            "whitespace-nowrap"
+          );
+          nomeCell.textContent = cliente.nome;
+
+          const emailCell = document.createElement("td");
+          emailCell.classList.add("py-3", "px-6", "text-left");
+          emailCell.textContent = cliente.email;
+
+          const telefoneCell = document.createElement("td");
+          telefoneCell.classList.add("py-3", "px-6", "text-left");
+          telefoneCell.textContent = cliente.telefone;
+
+          const acoesCell = document.createElement("td");
+          acoesCell.classList.add("py-3", "px-6", "text-center");
+
+          const btnFinanciamento = document.createElement("a");
+          btnFinanciamento.classList.add(
+            "bg-green-500",
+            "hover:bg-green-700",
+            "text-white",
+            "font-bold",
+            "py-1",
+            "px-2",
+            "rounded",
+            "leading-tight",
+            "mr-2"
+          );
+          btnFinanciamento.textContent = "Financiamento";
+          btnFinanciamento.href = `/listagem-emprestimos?telefone=${cliente.telefone}`;
+
+          const btnEditar = document.createElement("a");
+          btnEditar.classList.add(
+            "bg-blue-500",
+            "hover:bg-blue-700",
+            "text-white",
+            "font-bold",
+            "py-1",
+            "px-2",
+            "rounded",
+            "leading-tight",
+            "mr-2"
+          );
+          btnEditar.textContent = "Editar";
+          btnEditar.href = `/edicao?telefone=${cliente.telefone}`;
+
+          const btnExcluir = document.createElement("button");
+          btnExcluir.classList.add(
+            "bg-red-500",
+            "hover:bg-red-700",
+            "text-white",
+            "font-bold",
+            "py-1",
+            "px-2",
+            "rounded",
+            "leading-tight"
+          );
+          btnExcluir.textContent = "Excluir";
+          btnExcluir.setAttribute("data-telefone", cliente.telefone);
+
+          const acoesWrapper = document.createElement("div");
+          acoesWrapper.classList.add("flex", "justify-center");
+          acoesWrapper.appendChild(btnFinanciamento);
+          acoesWrapper.appendChild(btnEditar);
+          acoesWrapper.appendChild(btnExcluir);
+
+          acoesCell.appendChild(acoesWrapper);
+
+          row.appendChild(nomeCell);
+          row.appendChild(emailCell);
+          row.appendChild(telefoneCell);
+          row.appendChild(acoesCell);
+
+          tabelaClientes.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Erro:", error);
+        alert(
+          "Erro ao conectar ao servidor. Verifique se o backend está rodando."
+        );
+      }
+    }
+
+    async function excluirCliente(telefone) {
+      if (!confirm("Tem certeza que deseja excluir este cliente?")) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/${telefone}`, {
+          method: "DELETE",
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          carregarClientes(inputBusca.value);
+        } else {
+          alert(result.message);
+        }
+      } catch (error) {
+        console.error("Erro:", error);
+        alert(
+          "Erro de conexão com o servidor. Verifique se o backend está rodando."
+        );
+      }
+    }
+
+    formBusca.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const query = inputBusca.value;
+      carregarClientes(query);
+    });
+
+    btnLimparBusca.addEventListener("click", function () {
+      inputBusca.value = "";
+      carregarClientes();
+    });
+
+    tabelaClientes.addEventListener("click", function (event) {
+      if (
+        event.target.tagName === "BUTTON" &&
+        event.target.textContent === "Excluir"
+      ) {
+        const clienteTelefone = event.target.getAttribute("data-telefone");
+        excluirCliente(clienteTelefone);
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", carregarClientes);
+  </script>
+   
+</body>
+
+</html>
