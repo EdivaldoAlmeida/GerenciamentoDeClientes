@@ -28,7 +28,6 @@ def get_db_connection():
 # Rota para servir a página de gerenciamento (cadastro)
 @app.route('/')
 def gerenciamento():
-    # render_template busca o arquivo na pasta 'templates'
     return render_template('gerenciamento.html')
 
 # Rota para servir a página de listagem
@@ -84,20 +83,22 @@ def cadastrar_cliente():
         cursor.close()
         conn.close()
 
-# Rota para buscar e listar todos os clientes
+# Rota para buscar e listar todos os clientes (corrigida)
 @app.route('/clientes', methods=['GET'])
 def listar_clientes():
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
     cursor.execute("SELECT nome, email, telefone FROM clientes;")
     clientes = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    # Formatar os resultados para JSON
     clientes_formatados = []
     for cliente in clientes:
-        clientes_formatados.append({ 
+        clientes_formatados.append({
             "nome": cliente[0],
             "email": cliente[1],
             "telefone": cliente[2]
@@ -105,10 +106,12 @@ def listar_clientes():
     return jsonify(clientes_formatados)
 
 # Rota para deletar um cliente por telefone
-# Rota para deletar um cliente por telefone
 @app.route('/clientes/<string:telefone>', methods=['DELETE'])
 def deletar_cliente(telefone):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
 
     try:
@@ -122,7 +125,6 @@ def deletar_cliente(telefone):
         
     except psycopg2.IntegrityError as e:
         conn.rollback()
-        # Nova mensagem de erro
         return jsonify({"message": "Não foi possível excluir cliente. Verifique se ele possui empréstimos ativos."}), 409
         
     except Exception as e:
@@ -137,6 +139,9 @@ def deletar_cliente(telefone):
 @app.route('/emprestimos/<int:id>', methods=['DELETE'])
 def deletar_emprestimo(id):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
 
     try:
@@ -163,6 +168,9 @@ def atualizar_detalhes_emprestimo(id):
     detalhes = data.get('detalhes')
 
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
     
     try:
@@ -188,6 +196,9 @@ def atualizar_detalhes_emprestimo(id):
 @app.route('/clientes/<string:telefone>', methods=['GET'])
 def buscar_cliente(telefone):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
 
     try:
@@ -222,6 +233,9 @@ def atualizar_cliente(telefone):
         return jsonify({"message": "Nome é um campo obrigatório."}), 400
 
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
 
     try:
@@ -260,6 +274,9 @@ def cadastrar_emprestimo():
         return jsonify({"message": "Campos obrigatórios faltando."}), 400
 
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+
     cursor = conn.cursor()
 
     try:
@@ -284,6 +301,9 @@ def cadastrar_emprestimo():
 @app.route('/emprestimos/<string:telefone>', methods=['GET'])
 def listar_emprestimos_cliente(telefone):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"message": "Erro de conexão com o banco de dados."}), 500
+    
     cursor = conn.cursor()
     
     try:
@@ -312,11 +332,6 @@ def listar_emprestimos_cliente(telefone):
         conn.close()
 
 if __name__ == '__main__':
-    # Criar uma pasta para as páginas HTML, se não existir
     if not os.path.exists('templates'):
         os.makedirs('templates')
-    
-    # Você precisa mover seus arquivos HTML para dentro desta pasta 'templates'
-    print("Por favor, mova seus arquivos gerenciamento.html, listagem.html e financiamento.html para a nova pasta 'templates'.")
-    
     app.run(debug=True, port=5000)
