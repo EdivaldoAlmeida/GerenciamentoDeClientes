@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empréstimos do Cliente</title>
-    <!-- Incluindo a biblioteca do Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -24,6 +23,73 @@
 
         h3 {
             font-size: 1.25rem;
+        }
+    </style>
+</head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empréstimos do Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empréstimos do Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
+
+        /* Estilo do modal */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            transition: transform 0.3s ease;
         }
     </style>
 </head>
@@ -50,12 +116,20 @@
                     EMPRÉSTIMOS DO CLIENTE
                 </h2>
 
+                <div class="flex justify-end mb-4">
+                    <a id="btn-novo-financiamento" href="#"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Novo Financiamento
+                    </a>
+                </div>
+
                 <table class="min-w-full table-auto">
                     <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">Valor Empréstimo</th>
                             <th class="py-3 px-6 text-left">Juros Mensal (%)</th>
                             <th class="py-3 px-6 text-left">Nº Meses</th>
+                            <th class="py-3 px-6 text-left">Valor da Parcela</th>
                             <th class="py-3 px-6 text-center">Ações</th>
                         </tr>
                     </thead>
@@ -66,15 +140,43 @@
         </section>
     </main>
 
+    <div id="detalhes-modal" class="modal fixed inset-0 flex items-center justify-center hidden">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4">Detalhes do Empréstimo</h3>
+            <textarea id="detalhes-textarea"
+                class="w-full h-40 p-2 border rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="btn-salvar-detalhes"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Salvar
+                </button>
+                <button id="btn-cancelar-detalhes"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const tabelaEmprestimos = document.getElementById('tabela-emprestimos');
+        const btnNovoFinanciamento = document.getElementById('btn-novo-financiamento');
         const API_URL = 'http://127.0.0.1:5000/emprestimos';
 
-        // Pega o telefone do cliente da URL
+        const detalhesModal = document.getElementById('detalhes-modal');
+        const detalhesTextarea = document.getElementById('detalhes-textarea');
+        const btnSalvarDetalhes = document.getElementById('btn-salvar-detalhes');
+        const btnCancelarDetalhes = document.getElementById('btn-cancelar-detalhes');
+
+        let emprestimoSelecionadoId = null;
+
         const urlParams = new URLSearchParams(window.location.search);
         const telefoneCliente = urlParams.get('telefone');
 
-        // Função para carregar e exibir os empréstimos na tabela
+        if (telefoneCliente) {
+            btnNovoFinanciamento.href = `/financiamento?telefone=${telefoneCliente}`;
+        }
+
         async function carregarEmprestimos(telefone) {
             tabelaEmprestimos.innerHTML = '';
             try {
@@ -87,7 +189,7 @@
                 if (emprestimos.length === 0) {
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.colSpan = 4;
+                    cell.colSpan = 5;
                     cell.classList.add('py-3', 'px-6', 'text-center', 'text-gray-500', 'italic');
                     cell.textContent = 'Nenhum empréstimo cadastrado para este cliente.';
                     row.appendChild(cell);
@@ -111,19 +213,31 @@
                     mesesCell.classList.add('py-3', 'px-6', 'text-left');
                     mesesCell.textContent = emprestimo.num_meses;
 
-                    // Célula para o botão de exclusão
+                    const parcelaCell = document.createElement('td');
+                    parcelaCell.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
+                    parcelaCell.textContent = `R$ ${parseFloat(emprestimo.valor_parcela).toFixed(2)}`;
+
                     const acoesCell = document.createElement('td');
-                    acoesCell.classList.add('py-3', 'px-6', 'text-center');
+                    acoesCell.classList.add('py-3', 'px-6', 'text-center', 'whitespace-nowrap');
+
+                    const btnDetalhes = document.createElement('button');
+                    btnDetalhes.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight', 'mr-2');
+                    btnDetalhes.textContent = 'Detalhes';
+                    btnDetalhes.setAttribute('data-id', emprestimo.id);
+                    btnDetalhes.setAttribute('data-detalhes', emprestimo.detalhes || '');
 
                     const btnExcluir = document.createElement('button');
                     btnExcluir.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight');
                     btnExcluir.textContent = 'Excluir';
                     btnExcluir.setAttribute('data-id', emprestimo.id);
+
+                    acoesCell.appendChild(btnDetalhes);
                     acoesCell.appendChild(btnExcluir);
 
                     row.appendChild(valorCell);
                     row.appendChild(jurosCell);
                     row.appendChild(mesesCell);
+                    row.appendChild(parcelaCell);
                     row.appendChild(acoesCell);
                     tabelaEmprestimos.appendChild(row);
                 });
@@ -133,24 +247,20 @@
             }
         }
 
-        // A função de exclusão
         async function excluirEmprestimo(id) {
             if (!confirm('Tem certeza que deseja excluir este empréstimo?')) {
                 return;
             }
 
             try {
-                // Converte a string ID para um número inteiro antes de enviar
-                const response = await fetch(`${API_URL}/${parseInt(id)}`, {
+                const response = await fetch(`${API_URL}/${id}`, {
                     method: 'DELETE'
                 });
-
                 if (response.ok) {
-                    // Recarrega a lista para mostrar a alteração
                     carregarEmprestimos(telefoneCliente);
                 } else {
                     const result = await response.json();
-                    alert('Erro ao excluir: ' + result.message);
+                    alert(result.message);
                 }
             } catch (error) {
                 console.error('Erro:', error);
@@ -158,18 +268,65 @@
             }
         }
 
-        // Adicionar um ouvinte de eventos para os cliques na tabela
+        async function salvarDetalhesEmprestimo() {
+            if (!emprestimoSelecionadoId) {
+                return;
+            }
+
+            const novosDetalhes = detalhesTextarea.value;
+            try {
+                const response = await fetch(`${API_URL}/${emprestimoSelecionadoId}/detalhes`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ detalhes: novosDetalhes })
+                });
+
+                if (response.ok) {
+                    detalhesModal.classList.add('hidden');
+                    carregarEmprestimos(telefoneCliente);
+                } else {
+                    const result = await response.json();
+                    alert('Erro ao salvar detalhes: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
         tabelaEmprestimos.addEventListener('click', function (event) {
             if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Excluir') {
                 const emprestimoId = event.target.getAttribute('data-id');
                 excluirEmprestimo(emprestimoId);
+            } else if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Detalhes') {
+                emprestimoSelecionadoId = event.target.getAttribute('data-id');
+                const detalhesAtuais = event.target.getAttribute('data-detalhes');
+                detalhesTextarea.value = detalhesAtuais;
+                detalhesModal.classList.remove('hidden');
             }
         });
 
-        // Carregar os empréstimos quando a página for carregada
-        document.addEventListener('DOMContentLoaded', () => carregarEmprestimos(telefoneCliente));
-    </script>
+        btnCancelarDetalhes.addEventListener('click', function () {
+            detalhesModal.classList.add('hidden');
+        });
 
+        btnSalvarDetalhes.addEventListener('click', salvarDetalhesEmprestimo);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (telefoneCliente) {
+                carregarEmprestimos(telefoneCliente);
+            } else {
+                alert('Telefone do cliente não especificado. Redirecionando para a listagem principal.');
+                window.location.href = '/listagem';
+            }
+        });
+    </script>
 </body>
+
+</html>
+
+</html>
 
 </html>

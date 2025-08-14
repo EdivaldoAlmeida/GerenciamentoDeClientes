@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,11 +13,21 @@
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
         }
-        h1 { font-size: 1.875rem; }
-        h2 { font-size: 1.5rem; }
-        h3 { font-size: 1.25rem; }
+
+        h1 {
+            font-size: 1.875rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100">
 
     <header class="bg-blue-600 text-white shadow-md">
@@ -31,14 +42,16 @@
     <main class="container mx-auto p-4">
         <section class="mt-8">
             <div class="bg-white p-8 rounded-lg shadow-md max-w-xl mx-auto">
-                
+
                 <form id="form-financiamento">
                     <!-- Telefone do Cliente -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="telefone-cliente">
                             Telefone do Cliente
                         </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="telefone-cliente" type="text" placeholder="Telefone do cliente (chave única)" required>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="telefone-cliente" type="text" placeholder="Telefone do cliente (chave única)" required>
                     </div>
                     <!-- Valor a ser emprestado -->
                     <div class="mb-4">
@@ -47,7 +60,9 @@
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">R$</span>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="valor" type="number" step="0.01" min="0" placeholder="0,00" required>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="valor" type="number" step="0.01" min="0" placeholder="0,00" required>
                         </div>
                     </div>
 
@@ -57,7 +72,9 @@
                             Juros
                         </label>
                         <div class="relative flex items-center space-x-2">
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="juros" type="number" step="0.01" min="0" placeholder="0" required>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="juros" type="number" step="0.01" min="0" placeholder="0" required>
                             <span>% ao mês</span>
                         </div>
                     </div>
@@ -67,7 +84,9 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="meses">
                             Número de meses
                         </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="meses" type="number" min="1" placeholder="0" required>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="meses" type="number" min="1" placeholder="0" required>
                     </div>
 
                     <!-- Detalhes do empréstimo -->
@@ -75,17 +94,13 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="detalhes">
                             Detalhes do Empréstimo
                         </label>
-                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="detalhes" rows="3" placeholder="Ex: Aprovado em 13/08/2025 para compra de carro."></textarea>
+                        <textarea
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="detalhes" rows="3"
+                            placeholder="Ex: Aprovado em 13/08/2025 para compra de carro."></textarea>
                     </div>
-                    
-                    <div class="flex items-center justify-between mt-6">
-                        <button id="btn-calcular" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                            CALCULAR E SALVAR
-                        </button>
-                        <button id="btn-limpar" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
-                            LIMPAR
-                        </button>
-                    </div>
+
+
                 </form>
 
                 <div id="resultado-calculo" class="mt-8 hidden">
@@ -100,23 +115,43 @@
             </div>
         </section>
     </main>
+    <div class="flex justify-center space-x-4 mt-6">
+        <button id="btn-calcular"
+            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="button">
+            CALCULAR
+        </button>
+        <button id="btn-salvar"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline opacity-50 cursor-not-allowed"
+            type="button" disabled>
+            SALVAR
+        </button>
+        <button id="btn-limpar"
+            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="button">
+            LIMPAR
+        </button>
+    </div>
 
     <script>
         const API_URL = 'http://127.0.0.1:5000/emprestimos';
-        
+
         const telefoneClienteInput = document.getElementById('telefone-cliente');
         const valorInput = document.getElementById('valor');
         const jurosInput = document.getElementById('juros');
         const mesesInput = document.getElementById('meses');
         const detalhesInput = document.getElementById('detalhes');
         const btnCalcular = document.getElementById('btn-calcular');
+        const btnSalvar = document.getElementById('btn-salvar');
         const btnLimpar = document.getElementById('btn-limpar');
-        
+
         const resultadoDiv = document.getElementById('resultado-calculo');
         const valorParcelaSpan = document.getElementById('valor-parcela');
         const totalPagarSpan = document.getElementById('total-pagar');
         const totalJurosSpan = document.getElementById('total-juros');
-        
+
+        let resultadoCalculo = null;
+
         // Função para limpar o formulário e os resultados
         function limparSimulacao() {
             telefoneClienteInput.value = '';
@@ -125,6 +160,13 @@
             mesesInput.value = '';
             detalhesInput.value = '';
             resultadoDiv.classList.add('hidden');
+            btnSalvar.disabled = true;
+            btnSalvar.classList.add('opacity-50', 'cursor-not-allowed');
+            btnSalvar.classList.remove('hover:bg-green-700');
+            btnCalcular.disabled = false;
+            btnCalcular.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnCalcular.classList.add('hover:bg-orange-700');
+            resultadoCalculo = null;
         }
 
         // Função para extrair o telefone da URL e preencher o campo
@@ -137,41 +179,58 @@
         }
         document.addEventListener('DOMContentLoaded', preencherTelefoneDaUrl);
 
-        // Função principal de cálculo e salvamento
-        btnCalcular.addEventListener('click', async function(event) {
+        // Função principal de cálculo
+        btnCalcular.addEventListener('click', function (event) {
             event.preventDefault();
 
             const telefoneCliente = telefoneClienteInput.value;
             const valorEmprestimo = parseFloat(valorInput.value);
-            const jurosMensal = parseFloat(jurosInput.value) / 100;
+            let jurosMensal = parseFloat(jurosInput.value) / 100;
             const numMeses = parseInt(mesesInput.value);
             const detalhes = detalhesInput.value;
 
-            // Validar inputs
             if (!telefoneCliente || isNaN(valorEmprestimo) || isNaN(jurosMensal) || isNaN(numMeses) || valorEmprestimo <= 0 || numMeses <= 0) {
                 alert('Por favor, preencha todos os campos obrigatórios com valores válidos.');
                 return;
             }
 
-            // Calcular a parcela (Sistema Price)
             let parcelaFixa;
             if (jurosMensal === 0) {
                 parcelaFixa = valorEmprestimo / numMeses;
             } else {
                 parcelaFixa = valorEmprestimo * (jurosMensal * Math.pow(1 + jurosMensal, numMeses)) / (Math.pow(1 + jurosMensal, numMeses) - 1);
             }
-            
+
             const totalPagar = parcelaFixa * numMeses;
             const totalJuros = totalPagar - valorEmprestimo;
 
-            // Salvar no banco de dados
-            const novoEmprestimo = {
+            // Armazena os resultados para o botão Salvar
+            resultadoCalculo = {
                 valor_emprestado: valorEmprestimo,
-                juros_mensal: jurosMensal * 100, // Volta para o formato de porcentagem
+                juros_mensal: jurosMensal * 100,
                 num_meses: numMeses,
                 detalhes: detalhes,
-                cliente_telefone: telefoneCliente
+                cliente_telefone: telefoneCliente,
+                valor_parcela: parcelaFixa // <-- Adicionamos o valor da parcela aqui
             };
+
+            // Exibir resultados e habilitar botão Salvar
+            valorParcelaSpan.textContent = `R$ ${parcelaFixa.toFixed(2)}`;
+            totalPagarSpan.textContent = `R$ ${totalPagar.toFixed(2)}`;
+            totalJurosSpan.textContent = `R$ ${totalJuros.toFixed(2)}`;
+            resultadoDiv.classList.remove('hidden');
+
+            btnSalvar.disabled = false;
+            btnSalvar.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnSalvar.classList.add('hover:bg-green-700');
+        });
+
+        // Evento para o botão Salvar
+        btnSalvar.addEventListener('click', async function () {
+            if (!resultadoCalculo) {
+                alert('Por favor, faça um cálculo primeiro.');
+                return;
+            }
 
             try {
                 const response = await fetch(API_URL, {
@@ -179,18 +238,13 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(novoEmprestimo)
+                    body: JSON.stringify(resultadoCalculo)
                 });
 
                 const result = await response.json();
                 if (response.ok) {
-                    // Exibir resultados e depois redirecionar para a listagem de clientes
-                    valorParcelaSpan.textContent = `R$ ${parcelaFixa.toFixed(2)}`;
-                    totalPagarSpan.textContent = `R$ ${totalPagar.toFixed(2)}`;
-                    totalJurosSpan.textContent = `R$ ${totalJuros.toFixed(2)}`;
-                    resultadoDiv.classList.remove('hidden');
                     alert('Empréstimo cadastrado com sucesso!');
-                    window.location.href = `/listagem-emprestimos?telefone=${telefoneCliente}`; // Rota a ser criada
+                    window.location.href = `/listagem-emprestimos?telefone=${resultadoCalculo.cliente_telefone}`;
                 } else {
                     alert("Erro ao cadastrar empréstimo: " + result.message);
                 }
@@ -200,9 +254,10 @@
             }
         });
 
-        // Adicionar o ouvinte para o botão LIMPAR
+        // Evento para o botão Limpar
         btnLimpar.addEventListener('click', limparSimulacao);
     </script>
 
 </body>
+
 </html>

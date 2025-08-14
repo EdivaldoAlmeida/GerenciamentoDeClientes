@@ -105,6 +105,7 @@ def listar_clientes():
     return jsonify(clientes_formatados)
 
 # Rota para deletar um cliente por telefone
+# Rota para deletar um cliente por telefone
 @app.route('/clientes/<string:telefone>', methods=['DELETE'])
 def deletar_cliente(telefone):
     conn = get_db_connection()
@@ -113,12 +114,21 @@ def deletar_cliente(telefone):
     try:
         cursor.execute("DELETE FROM clientes WHERE telefone = %s", (telefone,))
         conn.commit()
+
         if cursor.rowcount == 0:
             return jsonify({"message": "Cliente não encontrado."}), 404
+        
         return jsonify({"message": "Cliente excluído com sucesso!"}), 200
+        
+    except psycopg2.IntegrityError as e:
+        conn.rollback()
+        # Nova mensagem de erro
+        return jsonify({"message": "Não foi possível excluir cliente. Verifique se ele possui empréstimos ativos."}), 409
+        
     except Exception as e:
         conn.rollback()
         return jsonify({"message": "Ocorreu um erro ao excluir o cliente.", "error": str(e)}), 500
+        
     finally:
         cursor.close()
         conn.close()
@@ -145,7 +155,34 @@ def deletar_emprestimo(id):
     finally:
         cursor.close()
         conn.close()
+
+# Rota para editar os detalhes de um empréstimo por ID
+@app.route('/emprestimos/<int:id>/detalhes', methods=['PUT'])
+def atualizar_detalhes_emprestimo(id):
+    data = request.json
+    detalhes = data.get('detalhes')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
+    try:
+        cursor.execute(
+            "UPDATE emprestimos SET detalhes = %s WHERE id = %s",
+            (detalhes, id)
+        )
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return jsonify({"message": "Empréstimo não encontrado ou detalhes não alterados."}), 404
+
+        return jsonify({"message": "Detalhes do empréstimo atualizados com sucesso!"}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "Ocorreu um erro ao atualizar os detalhes do empréstimo.", "error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()        
     
 # Rota para buscar os dados de um único cliente por telefone
 @app.route('/clientes/<string:telefone>', methods=['GET'])
@@ -217,8 +254,9 @@ def cadastrar_emprestimo():
     num_meses = data.get('num_meses')
     detalhes = data.get('detalhes')
     cliente_telefone = data.get('cliente_telefone')
+    valor_parcela = data.get('valor_parcela')
 
-    if not all([valor_emprestado, juros_mensal, num_meses, cliente_telefone]):
+    if not all([valor_emprestado, juros_mensal, num_meses, cliente_telefone, valor_parcela]):
         return jsonify({"message": "Campos obrigatórios faltando."}), 400
 
     conn = get_db_connection()
@@ -226,8 +264,8 @@ def cadastrar_emprestimo():
 
     try:
         cursor.execute(
-            "INSERT INTO emprestimos (valor_emprestado, juros_mensal, num_meses, detalhes, cliente_telefone) VALUES (%s, %s, %s, %s, %s) RETURNING id;",
-            (valor_emprestado, juros_mensal, num_meses, detalhes, cliente_telefone)
+            "INSERT INTO emprestimos (valor_emprestado, juros_mensal, num_meses, detalhes, cliente_telefone, valor_parcela) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;",
+            (valor_emprestado, juros_mensal, num_meses, detalhes, cliente_telefone, valor_parcela)
         )
         emprestimo_id = cursor.fetchone()[0]
         conn.commit()
@@ -247,14 +285,14 @@ def cadastrar_emprestimo():
 def listar_emprestimos_cliente(telefone):
     conn = get_db_connection()
     cursor = conn.cursor()
-
+    
     try:
         cursor.execute(
-            "SELECT id, valor_emprestado, juros_mensal, num_meses, detalhes FROM emprestimos WHERE cliente_telefone = %s",
+            "SELECT id, valor_emprestado, juros_mensal, num_meses, detalhes, valor_parcela FROM emprestimos WHERE cliente_telefone = %s",
             (telefone,)
         )
         emprestimos = cursor.fetchall()
-
+        
         emprestimos_formatados = []
         for emprestimo in emprestimos:
             emprestimos_formatados.append({
@@ -262,7 +300,8 @@ def listar_emprestimos_cliente(telefone):
                 "valor_emprestado": str(emprestimo[1]),
                 "juros_mensal": str(emprestimo[2]),
                 "num_meses": emprestimo[3],
-                "detalhes": emprestimo[4]
+                "detalhes": emprestimo[4],
+                "valor_parcela": str(emprestimo[5])
             })
         return jsonify(emprestimos_formatados), 200
     except Exception as e:
