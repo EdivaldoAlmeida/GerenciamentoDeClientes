@@ -94,7 +94,7 @@
     </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
     <header class="bg-white shadow-md">
         <div class="container mx-auto p-4 flex justify-between items-center">
@@ -140,33 +140,38 @@
         </section>
     </main>
 
-    <div id="detalhes-modal" class="modal fixed inset-0 flex items-center justify-center hidden">
+    <div id="pagamentos-modal" class="modal fixed inset-0 flex items-center justify-center hidden">
         <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-lg font-bold mb-4">Detalhes do Empréstimo</h3>
-            <textarea id="detalhes-textarea"
-                class="w-full h-40 p-2 border rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
+            <h3 class="text-lg font-bold mb-4">Pagamentos do Empréstimo</h3>
+            <div class="overflow-y-auto max-h-64">
+                <table class="min-w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                            <th class="py-2 px-4 text-left">Parcela</th>
+                            <th class="py-2 px-4 text-left">Data do Pagamento</th>
+                            <th class="py-2 px-4 text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-pagamentos" class="text-gray-600 text-sm font-light">
+                    </tbody>
+                </table>
+            </div>
             <div class="flex justify-end space-x-2 mt-4">
-                <button id="btn-salvar-detalhes"
-                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                    Salvar
-                </button>
-                <button id="btn-cancelar-detalhes"
-                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Cancelar
+                <button id="btn-fechar-pagamentos" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Fechar
                 </button>
             </div>
         </div>
     </div>
-
+    
     <script>
         const tabelaEmprestimos = document.getElementById('tabela-emprestimos');
         const btnNovoFinanciamento = document.getElementById('btn-novo-financiamento');
         const API_URL = 'http://127.0.0.1:5000/emprestimos';
 
-        const detalhesModal = document.getElementById('detalhes-modal');
-        const detalhesTextarea = document.getElementById('detalhes-textarea');
-        const btnSalvarDetalhes = document.getElementById('btn-salvar-detalhes');
-        const btnCancelarDetalhes = document.getElementById('btn-cancelar-detalhes');
+        const pagamentosModal = document.getElementById('pagamentos-modal');
+        const tabelaPagamentos = document.getElementById('tabela-pagamentos');
+        const btnFecharPagamentos = document.getElementById('btn-fechar-pagamentos');
 
         let emprestimoSelecionadoId = null;
 
@@ -212,7 +217,7 @@
                     const mesesCell = document.createElement('td');
                     mesesCell.classList.add('py-3', 'px-6', 'text-left');
                     mesesCell.textContent = emprestimo.num_meses;
-
+                    
                     const parcelaCell = document.createElement('td');
                     parcelaCell.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
                     parcelaCell.textContent = `R$ ${parseFloat(emprestimo.valor_parcela).toFixed(2)}`;
@@ -220,18 +225,18 @@
                     const acoesCell = document.createElement('td');
                     acoesCell.classList.add('py-3', 'px-6', 'text-center', 'whitespace-nowrap');
 
-                    const btnDetalhes = document.createElement('button');
-                    btnDetalhes.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight', 'mr-2');
-                    btnDetalhes.textContent = 'Detalhes';
-                    btnDetalhes.setAttribute('data-id', emprestimo.id);
-                    btnDetalhes.setAttribute('data-detalhes', emprestimo.detalhes || '');
-
+                    const btnPagamentos = document.createElement('button');
+                    btnPagamentos.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight', 'mr-2');
+                    btnPagamentos.textContent = 'Pagamentos';
+                    btnPagamentos.setAttribute('data-id', emprestimo.id);
+                    btnPagamentos.setAttribute('data-meses', emprestimo.num_meses);
+                    
                     const btnExcluir = document.createElement('button');
                     btnExcluir.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight');
                     btnExcluir.textContent = 'Excluir';
                     btnExcluir.setAttribute('data-id', emprestimo.id);
 
-                    acoesCell.appendChild(btnDetalhes);
+                    acoesCell.appendChild(btnPagamentos);
                     acoesCell.appendChild(btnExcluir);
 
                     row.appendChild(valorCell);
@@ -268,51 +273,99 @@
             }
         }
 
-        async function salvarDetalhesEmprestimo() {
-            if (!emprestimoSelecionadoId) {
-                return;
-            }
-
-            const novosDetalhes = detalhesTextarea.value;
+        async function carregarPagamentos(emprestimoId, numMeses) {
+            tabelaPagamentos.innerHTML = '';
             try {
-                const response = await fetch(`${API_URL}/${emprestimoSelecionadoId}/detalhes`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_URL}/${emprestimoId}/pagamentos`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar os pagamentos.');
+                }
+                const pagamentos = await response.json();
+                const pagamentosEfetuados = pagamentos.map(p => p.numero_parcela);
+
+                for (let i = 1; i <= numMeses; i++) {
+                    const row = document.createElement('tr');
+                    row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100');
+
+                    const parcelaCell = document.createElement('td');
+                    parcelaCell.classList.add('py-2', 'px-4', 'text-left');
+                    parcelaCell.textContent = i;
+
+                    const dataCell = document.createElement('td');
+                    dataCell.classList.add('py-2', 'px-4', 'text-left');
+                    
+                    const acaoCell = document.createElement('td');
+                    acaoCell.classList.add('py-2', 'px-4', 'text-center');
+
+                    if (pagamentosEfetuados.includes(i)) {
+                        const pagamento = pagamentos.find(p => p.numero_parcela === i);
+                        dataCell.textContent = pagamento.data_pagamento.substring(0, 10);
+                        acaoCell.innerHTML = '<span class="text-green-500 font-bold">Pago</span>';
+                    } else {
+                        dataCell.textContent = 'Aguardando...';
+                        const btnMarcarPago = document.createElement('button');
+                        btnMarcarPago.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'text-xs');
+                        btnMarcarPago.textContent = 'Marcar como Pago';
+                        btnMarcarPago.setAttribute('data-parcela', i);
+                        acaoCell.appendChild(btnMarcarPago);
+                    }
+                    
+                    row.appendChild(parcelaCell);
+                    row.appendChild(dataCell);
+                    row.appendChild(acaoCell);
+                    tabelaPagamentos.appendChild(row);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar os pagamentos. Verifique se o backend está rodando.');
+            }
+        }
+        
+        async function marcarPagamento(emprestimoId, numeroParcela) {
+            try {
+                const response = await fetch(`${API_URL}/${emprestimoId}/pagamentos`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ detalhes: novosDetalhes })
+                    body: JSON.stringify({ numero_parcela: numeroParcela })
                 });
 
                 if (response.ok) {
-                    detalhesModal.classList.add('hidden');
+                    carregarPagamentos(emprestimoId, parseInt(document.querySelector(`button[data-id="${emprestimoId}"]`).getAttribute('data-meses')));
                     carregarEmprestimos(telefoneCliente);
                 } else {
                     const result = await response.json();
-                    alert('Erro ao salvar detalhes: ' + result.message);
+                    alert('Erro ao marcar pagamento: ' + result.message);
                 }
             } catch (error) {
                 console.error('Erro:', error);
                 alert('Erro de conexão com o servidor.');
             }
         }
-
-        tabelaEmprestimos.addEventListener('click', function (event) {
+        
+        tabelaEmprestimos.addEventListener('click', function(event) {
             if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Excluir') {
                 const emprestimoId = event.target.getAttribute('data-id');
                 excluirEmprestimo(emprestimoId);
-            } else if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Detalhes') {
+            } else if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Pagamentos') {
                 emprestimoSelecionadoId = event.target.getAttribute('data-id');
-                const detalhesAtuais = event.target.getAttribute('data-detalhes');
-                detalhesTextarea.value = detalhesAtuais;
-                detalhesModal.classList.remove('hidden');
+                const numMeses = parseInt(event.target.getAttribute('data-meses'));
+                carregarPagamentos(emprestimoSelecionadoId, numMeses);
+                pagamentosModal.classList.remove('hidden');
             }
         });
 
-        btnCancelarDetalhes.addEventListener('click', function () {
-            detalhesModal.classList.add('hidden');
+        tabelaPagamentos.addEventListener('click', function(event) {
+            if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Marcar como Pago') {
+                const numeroParcela = parseInt(event.target.getAttribute('data-parcela'));
+                marcarPagamento(emprestimoSelecionadoId, numeroParcela);
+            }
         });
 
-        btnSalvarDetalhes.addEventListener('click', salvarDetalhesEmprestimo);
+        btnFecharPagamentos.addEventListener('click', function() {
+            pagamentosModal.classList.add('hidden');
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             if (telefoneCliente) {
