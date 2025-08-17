@@ -94,6 +94,24 @@
     </style>
 </head>
 
+<div id="detalhes-modal" class="fixed inset-0 flex items-center justify-center bg-gray-600 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h3 class="text-lg font-bold mb-4">Editar Detalhes do Empréstimo</h3>
+        <textarea id="detalhes-textarea"
+            class="w-full h-40 p-2 border rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
+        <div class="flex justify-end space-x-2 mt-4">
+            <button id="btn-salvar-detalhes"
+                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Salvar
+            </button>
+            <button id="btn-cancelar-detalhes"
+                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
 <body>
 
     <header class="bg-white shadow-md">
@@ -130,6 +148,7 @@
                             <th class="py-3 px-6 text-left">Juros Mensal (%)</th>
                             <th class="py-3 px-6 text-left">Nº Meses</th>
                             <th class="py-3 px-6 text-left">Valor da Parcela</th>
+                            <th class="py-3 px-6 text-left">Detalhes</th>
                             <th class="py-3 px-6 text-center">Ações</th>
                         </tr>
                     </thead>
@@ -149,7 +168,7 @@
                         <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
                             <th class="py-2 px-4 text-left">Parcela</th>
                             <th class="py-2 px-4 text-left">Data do Pagamento</th>
-                            <th class="py-2 px-4 text-center">Ação</th>
+                            <th class="py-2 px-4 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-pagamentos" class="text-gray-600 text-sm font-light">
@@ -157,23 +176,52 @@
                 </table>
             </div>
             <div class="flex justify-end space-x-2 mt-4">
-                <button id="btn-fechar-pagamentos" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                <button id="btn-fechar-pagamentos"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Fechar
                 </button>
             </div>
         </div>
     </div>
-    
+
+    <div id="data-modal" class="modal fixed inset-0 flex items-center justify-center hidden">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-xs">
+            <h3 class="text-lg font-bold mb-4">Selecione a Data do Pagamento</h3>
+            <input type="date" id="data-input" class="w-full p-2 border rounded mb-4">
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="btn-salvar-data"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Salvar
+                </button>
+                <button id="btn-cancelar-data"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const tabelaEmprestimos = document.getElementById('tabela-emprestimos');
         const btnNovoFinanciamento = document.getElementById('btn-novo-financiamento');
         const API_URL = 'http://127.0.0.1:5000/emprestimos';
 
+        const detalhesModal = document.getElementById('detalhes-modal');
+        const detalhesTextarea = document.getElementById('detalhes-textarea');
+        const btnSalvarDetalhes = document.getElementById('btn-salvar-detalhes');
+        const btnCancelarDetalhes = document.getElementById('btn-cancelar-detalhes');
+
         const pagamentosModal = document.getElementById('pagamentos-modal');
         const tabelaPagamentos = document.getElementById('tabela-pagamentos');
         const btnFecharPagamentos = document.getElementById('btn-fechar-pagamentos');
 
+        const dataModal = document.getElementById('data-modal');
+        const dataInput = document.getElementById('data-input');
+        const btnSalvarData = document.getElementById('btn-salvar-data');
+        const btnCancelarData = document.getElementById('btn-cancelar-data');
+
         let emprestimoSelecionadoId = null;
+        let parcelaSelecionada = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         const telefoneCliente = urlParams.get('telefone');
@@ -194,7 +242,7 @@
                 if (emprestimos.length === 0) {
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.colSpan = 5;
+                    cell.colSpan = 6;
                     cell.classList.add('py-3', 'px-6', 'text-center', 'text-gray-500', 'italic');
                     cell.textContent = 'Nenhum empréstimo cadastrado para este cliente.';
                     row.appendChild(cell);
@@ -217,20 +265,31 @@
                     const mesesCell = document.createElement('td');
                     mesesCell.classList.add('py-3', 'px-6', 'text-left');
                     mesesCell.textContent = emprestimo.num_meses;
-                    
+
                     const parcelaCell = document.createElement('td');
                     parcelaCell.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
                     parcelaCell.textContent = `R$ ${parseFloat(emprestimo.valor_parcela).toFixed(2)}`;
 
+                    const detalhesCell = document.createElement('td');
+                    detalhesCell.classList.add('py-3', 'px-6', 'text-left');
+                    detalhesCell.textContent = emprestimo.detalhes;
+
                     const acoesCell = document.createElement('td');
                     acoesCell.classList.add('py-3', 'px-6', 'text-center', 'whitespace-nowrap');
+
+                    const btnDetalhes = document.createElement('button');
+                    btnDetalhes.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight', 'mr-2');
+                    btnDetalhes.textContent = 'Detalhes';
+                    btnDetalhes.setAttribute('data-id', emprestimo.id);
+                    btnDetalhes.setAttribute('data-detalhes', emprestimo.detalhes || '');
+                    acoesCell.appendChild(btnDetalhes);
 
                     const btnPagamentos = document.createElement('button');
                     btnPagamentos.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight', 'mr-2');
                     btnPagamentos.textContent = 'Pagamentos';
                     btnPagamentos.setAttribute('data-id', emprestimo.id);
                     btnPagamentos.setAttribute('data-meses', emprestimo.num_meses);
-                    
+
                     const btnExcluir = document.createElement('button');
                     btnExcluir.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'leading-tight');
                     btnExcluir.textContent = 'Excluir';
@@ -243,6 +302,7 @@
                     row.appendChild(jurosCell);
                     row.appendChild(mesesCell);
                     row.appendChild(parcelaCell);
+                    row.appendChild(detalhesCell);
                     row.appendChild(acoesCell);
                     tabelaEmprestimos.appendChild(row);
                 });
@@ -293,23 +353,42 @@
 
                     const dataCell = document.createElement('td');
                     dataCell.classList.add('py-2', 'px-4', 'text-left');
-                    
+
                     const acaoCell = document.createElement('td');
                     acaoCell.classList.add('py-2', 'px-4', 'text-center');
 
                     if (pagamentosEfetuados.includes(i)) {
                         const pagamento = pagamentos.find(p => p.numero_parcela === i);
-                        dataCell.textContent = pagamento.data_pagamento.substring(0, 10);
+                        const data = new Date(pagamento.data_pagamento);
+                        const dia = String(data.getDate()).padStart(2, '0');
+                        const mes = String(data.getMonth() + 1).padStart(2, '0');
+                        const ano = data.getFullYear();
+                        dataCell.textContent = `${dia}/${mes}/${ano}`;
                         acaoCell.innerHTML = '<span class="text-green-500 font-bold">Pago</span>';
                     } else {
                         dataCell.textContent = 'Aguardando...';
-                        const btnMarcarPago = document.createElement('button');
-                        btnMarcarPago.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'text-xs');
-                        btnMarcarPago.textContent = 'Marcar como Pago';
-                        btnMarcarPago.setAttribute('data-parcela', i);
-                        acaoCell.appendChild(btnMarcarPago);
+
+                        const botoesWrapper = document.createElement('div');
+                        botoesWrapper.classList.add('flex', 'justify-center', 'space-x-2');
+
+                        const btnMarcarHoje = document.createElement('button');
+                        btnMarcarHoje.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'text-xs');
+                        btnMarcarHoje.textContent = 'Marcar como Pago Hoje';
+                        btnMarcarHoje.setAttribute('data-parcela', i);
+                        btnMarcarHoje.setAttribute('data-action', 'hoje');
+
+                        const btnInserirData = document.createElement('button');
+                        btnInserirData.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-1', 'px-2', 'rounded', 'text-xs');
+                        btnInserirData.textContent = 'Inserir Data de Pagamento';
+                        btnInserirData.setAttribute('data-parcela', i);
+                        btnInserirData.setAttribute('data-action', 'data');
+
+                        botoesWrapper.appendChild(btnMarcarHoje);
+                        botoesWrapper.appendChild(btnInserirData);
+
+                        acaoCell.appendChild(botoesWrapper);
                     }
-                    
+
                     row.appendChild(parcelaCell);
                     row.appendChild(dataCell);
                     row.appendChild(acaoCell);
@@ -320,15 +399,20 @@
                 alert('Erro ao carregar os pagamentos. Verifique se o backend está rodando.');
             }
         }
-        
-        async function marcarPagamento(emprestimoId, numeroParcela) {
+
+        async function marcarPagamento(emprestimoId, numeroParcela, dataPagamento = null) {
+            const data = { numero_parcela: numeroParcela };
+            if (dataPagamento) {
+                data.data_pagamento = dataPagamento;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/${emprestimoId}/pagamentos`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ numero_parcela: numeroParcela })
+                    body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
@@ -343,8 +427,36 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
-        
-        tabelaEmprestimos.addEventListener('click', function(event) {
+
+        tabelaEmprestimos.addEventListener('click', function (event) {
+            if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Detalhes') {
+                emprestimoSelecionadoId = event.target.getAttribute('data-id');
+                const detalhesAtuais = event.target.getAttribute('data-detalhes');
+                detalhesTextarea.value = detalhesAtuais;
+                detalhesModal.classList.remove('hidden');
+            }
+        });
+
+        btnCancelarDetalhes.addEventListener('click', function () {
+            detalhesModal.classList.add('hidden');
+        });
+
+        btnSalvarDetalhes.addEventListener('click', async function () {
+            const novosDetalhes = detalhesTextarea.value;
+            const response = await fetch(`${API_URL}/${emprestimoSelecionadoId}/detalhes`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ detalhes: novosDetalhes })
+            });
+            if (response.ok) {
+                detalhesModal.classList.add('hidden');
+                carregarEmprestimos(telefoneCliente);
+            } else {
+                alert('Erro ao salvar detalhes.');
+            }
+        });
+
+        tabelaEmprestimos.addEventListener('click', function (event) {
             if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Excluir') {
                 const emprestimoId = event.target.getAttribute('data-id');
                 excluirEmprestimo(emprestimoId);
@@ -356,14 +468,31 @@
             }
         });
 
-        tabelaPagamentos.addEventListener('click', function(event) {
-            if (event.target.tagName === 'BUTTON' && event.target.textContent === 'Marcar como Pago') {
+        tabelaPagamentos.addEventListener('click', function (event) {
+            if (event.target.tagName === 'BUTTON' && event.target.getAttribute('data-action') === 'hoje') {
                 const numeroParcela = parseInt(event.target.getAttribute('data-parcela'));
                 marcarPagamento(emprestimoSelecionadoId, numeroParcela);
+            } else if (event.target.tagName === 'BUTTON' && event.target.getAttribute('data-action') === 'data') {
+                parcelaSelecionada = parseInt(event.target.getAttribute('data-parcela'));
+                dataModal.classList.remove('hidden');
             }
         });
 
-        btnFecharPagamentos.addEventListener('click', function() {
+        btnSalvarData.addEventListener('click', function () {
+            const dataSelecionada = dataInput.value;
+            if (dataSelecionada) {
+                marcarPagamento(emprestimoSelecionadoId, parcelaSelecionada, dataSelecionada);
+                dataModal.classList.add('hidden');
+            } else {
+                alert('Por favor, selecione uma data.');
+            }
+        });
+
+        btnCancelarData.addEventListener('click', function () {
+            dataModal.classList.add('hidden');
+        });
+
+        btnFecharPagamentos.addEventListener('click', function () {
             pagamentosModal.classList.add('hidden');
         });
 
@@ -377,8 +506,6 @@
         });
     </script>
 </body>
-
-</html>
 
 </html>
 
