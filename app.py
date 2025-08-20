@@ -1,6 +1,8 @@
 import os
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import psycopg2
+from datetime import datetime 
 
 # --- Configuração do Flask ---
 app = Flask(__name__)
@@ -189,6 +191,11 @@ def deletar_emprestimo(id):
 def marcar_pagamento(emprestimo_id):
     data = request.json
     numero_parcela = data.get('numero_parcela')
+    data_pagamento = data.get('data_pagamento')  # Pega a data do pagamento
+
+    # Se a data de pagamento não for fornecida, usa a data e hora atuais
+    if data_pagamento is None:
+        data_pagamento = datetime.now()
 
     conn = get_db_connection()
     if conn is None:
@@ -197,9 +204,10 @@ def marcar_pagamento(emprestimo_id):
     cursor = conn.cursor()
 
     try:
+        # Insere o pagamento com a data correta
         cursor.execute(
-            "INSERT INTO pagamentos_emprestimos (emprestimo_id, numero_parcela) VALUES (%s, %s);",
-            (emprestimo_id, numero_parcela)
+            "INSERT INTO pagamentos_emprestimos (emprestimo_id, numero_parcela, data_pagamento) VALUES (%s, %s, %s);",
+            (emprestimo_id, numero_parcela, data_pagamento)
         )
         conn.commit()
         return jsonify({"message": "Pagamento da parcela registrado com sucesso!"}), 201
