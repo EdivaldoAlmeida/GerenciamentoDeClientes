@@ -28,22 +28,22 @@
       h3 {
         font-size: 1.25rem; /* text-xl */
       }
-    </style></head
-  >F
+    </style>
+  </head>
   <body class="bg-slate-100">
     <header class="bg-white shadow-md">
       <div class="container mx-auto p-4 flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">
+        <h1 class="text-3xl font-bold text-gray-800 text-center flex-grow">
           GERENCIAMENTO DE CLIENTES
         </h1>
         <nav>
           <a
-            href="/"
+            href="/gerenciamento"
             class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"
             >Cadastro</a
           >
           <a
-            href="/listagem"
+            href="/"
             class="text-gray-600 hover:text-blue-500 font-semibold px-3 py-2 rounded-md"
             >Listagem</a
           >
@@ -113,12 +113,7 @@
               >
                 Cadastrar Cliente
               </button>
-              <a
-                href="financiamento"
-                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              >
-                Financiamento
-              </a>
+              
             </div>
           </form>
         </div>
@@ -158,7 +153,7 @@
 
             if (response.ok) {
               // Ao invés do alerta de sucesso, vamos redirecionar imediatamente.
-              window.location.href = "/listagem";
+              window.location.href = "/";
             } else {
               // Mensagem de erro permanece para feedback negativo.
               alert("Erro ao cadastrar: " + result.message);
