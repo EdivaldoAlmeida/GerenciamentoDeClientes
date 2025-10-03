@@ -26,15 +26,15 @@ def get_db_connection():
 
 # --- ROTAS DO SERVIDOR WEB ---
 
-# Rota para servir a página de gerenciamento (cadastro)
+# Rota para servir a página de listagem (agora a página inicial)
 @app.route('/')
-def gerenciamento():
-    return render_template('gerenciamento.html')
-
-# Rota para servir a página de listagem
-@app.route('/listagem')
 def listagem():
     return render_template('listagem.html')
+
+# Rota para servir a página de gerenciamento (cadastro)
+@app.route('/gerenciamento')
+def gerenciamento():
+    return render_template('gerenciamento.html')
 
 # Rota para servir a página de edição
 @app.route('/edicao')
