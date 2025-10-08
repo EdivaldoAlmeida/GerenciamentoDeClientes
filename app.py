@@ -432,4 +432,4 @@ def listar_emprestimos_cliente(telefone):
 if __name__ == '__main__':
     if not os.path.exists('templates'):
         os.makedirs('templates')
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)
