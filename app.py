@@ -7,23 +7,33 @@ from datetime import datetime
 # --- Configuração do Flask ---
 app = Flask(__name__)
 
-# --- Configuração do Banco de Dados ---
+# --------------- Configuração do Banco de Dados LOCAL -----------------------------------
 # ATENÇÃO: Substitua 'SUA_SENHA_DO_POSTGRES' pela senha que você criou
 # na instalação do PostgreSQL.
-DB_HOST = "localhost"
-DB_NAME = "gerenciamento_clientes"
-DB_USER = "postgres"
-DB_PASS = "postgres"
+# DB_HOST = "localhost"
+# DB_NAME = "gerenciamento_clientes"
+# DB_USER = "postgres"
+# DB_PASS = "postgres"
 
+# def get_db_connection():
+#    """Cria e retorna uma conexão com o banco de dados."""
+#    conn = psycopg2.connect(
+#        host=DB_HOST,
+#        database=DB_NAME,
+#        user=DB_USER,
+#        password=DB_PASS
+#    )
+#    return conn
+# -----------------------------BD LOCAL VAI ATÉ AQUI ------------------------------
+
+# --- Configuração do Banco de Dados REMOTO ---
+# --- Configuração do Banco de Dados ---
+DATABASE_URL = "postgresql://gerencimanto_clientes_user:nejk46WpwLVUmuwP6vBlfBu9FZCdovYJ@dpg-d3ijsv2li9vc73et9rb0-a/gerencimanto_clientes"
 def get_db_connection():
     """Cria e retorna uma conexão com o banco de dados."""
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS
-    )
+    conn = psycopg2.connect(DATABASE_URL)
     return conn
+
 
 # --- ROTAS DO SERVIDOR WEB ---
 
