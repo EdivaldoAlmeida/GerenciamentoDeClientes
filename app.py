@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import psycopg2
+import urllib.parse as urlparse
 from datetime import datetime 
 
 # --- Configuração do Flask ---
@@ -26,14 +27,30 @@ app = Flask(__name__)
 #    return conn
 # -----------------------------BD LOCAL VAI ATÉ AQUI ------------------------------
 
-# --- Configuração do Banco de Dados REMOTO ---
+# --- Configuração do Banco de Dados REMOTO - RENDER ---
 # --- Configuração do Banco de Dados ---
-DATABASE_URL = "postgresql://gerencimanto_clientes_user:nejk46WpwLVUmuwP6vBlfBu9FZCdovYJ@dpg-d3ijsv2li9vc73et9rb0-a/gerencimanto_clientes"
+# DATABASE_URL = "postgresql://gerencimanto_clientes_user:nejk46WpwLVUmuwP6vBlfBu9FZCdovYJ@dpg-d3ijsv2li9vc73et9rb0-a/gerencimanto_clientes"
+# def get_db_connection():
+#    """Cria e retorna uma conexão com o banco de dados."""
+#    conn = psycopg2.connect(DATABASE_URL)
+#    return conn
+
+# -----------------------------BD REMOTO RENDER VAI ATÉ AQUI ------------------------------
+
+# --- Configuração do Banco de Dados REMOTO - RAILWAY ---
+
 def get_db_connection():
-    """Cria e retorna uma conexão com o banco de dados."""
-    conn = psycopg2.connect(DATABASE_URL)
+    url = urlparse.urlparse(os.environ.get('DATABASE_URL'))
+    conn = psycopg2.connect(
+        database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+    )
     return conn
 
+# -----------------------------BD REMOTO RAILWAY VAI ATÉ AQUI ------------------------------
 
 # --- ROTAS DO SERVIDOR WEB ---
 
